@@ -86,15 +86,7 @@ Set-MpPreference -ScanOnlyIfIdleEnabled:$false
                                     
 # Cloud Schutz immer verwenden                                    
 Set-MpPreference -SubmitSamplesConsent SendAllSamples                                     
-                                    
-# Test Dateien unter:                                     
-# https://www.eicar.org/?page_id=3950                                     
-                                    
-# Test Webseite:                                    
-# http://www.wicar.org/test-malware.html                        
-                        
-# Da gibts noch was :-)                        
-                        
+                       
 # Defender in die Sandbox zwingen                        
 [Environment]::SetEnvironmentVariable("MP_FORCE_USE_SANDBOX",1,"Machine")                        
                         
