@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0.0
+.VERSION 1.2.0.0
 
 .GUID bf533bc1-76d2-4c13-a13d-1d8946c4e190
 
@@ -8,7 +8,7 @@
 
 .COMPANYNAME germanpowershell.com
 
-.COPYRIGHT (C) 2020 by germanpowershell.com - Alle Rechte vorbehalten
+.COPYRIGHT (C) 2021 by germanpowershell.com - Alle Rechte vorbehalten
 
 .TAGS Script PowerSHELL Logon
 
@@ -29,6 +29,8 @@ Aenderungsverlauf des Scripts nach dem Schema Major.Minor.Build.Revision,jeweils
 Version     |Type      |Datum         |Benutzer            |Bemerkungen
 1.0.0.0     |BUILD     |2019.01.24    |Thomas Dobler       |Script erstellt.
 1.1.0.0     |MINOR     |2020.02.11    |Thomas Dobler       |Parpierkorb leeren ergänzt.
+1.2.0.0     |MINOR     |2021.04.11    |Thomas Dobler       |Festplatte aufräumen ergänzt.
+
 
 
 .PRIVATEDATA
@@ -154,6 +156,40 @@ Update-MpSignature
 
 # Fullscan starten
 Start-MpScan -ScanType FullScan
+
+# Veraltete Windowsupdates entfernen
+dism /online /Cleanup-Image /StartComponentCleanup /ResetBase /SPSuperseded
+
+# Festplatte aufräumen mit maximalen Einstellungen
+$HKLM = [UInt32] “0x80000002”
+$strKeyPath = “SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches”
+$strValueName = “StateFlags0065”
+
+# Einstellungen für sämtliche Optionen auf dem Gerät festlegen
+$subkeys = gci -Path HKLM:\$strKeyPath -Name
+ForEach ($subkey in $subkeys) 
+{
+    Try {
+            New-ItemProperty -Path HKLM:\$strKeyPath\$subkey -Name $strValueName -PropertyType DWord -Value 2 -ErrorAction SilentlyContinue| Out-Null
+        }
+    
+    Catch {}
+    
+    Try {
+            # Aufräumen für sämtliche Laufwerke starten
+            Start-Process cleanmgr -ArgumentList “/sagerun:65” -Wait -NoNewWindow -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        }
+    
+    Catch {}
+}
+
+ForEach ($subkey in $subkeys) {
+    Try {
+            Remove-ItemProperty -Path HKLM:\$strKeyPath\$subkey -Name $strValueName | Out-Null
+        }
+    
+    Catch {}
+}
 
 # Papierkorb nach Anzahl Tagen leeren
 if ($AufbewahrungTage -ne "")
