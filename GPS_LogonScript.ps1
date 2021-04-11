@@ -50,7 +50,7 @@ $AufbewahrungTage = "7"
 $IconSnapshot = (Get-ChildItem "$env:USERPROFILE\Desktop","$env:SystemDrive\Users\Public\Desktop").FullName
 
 # Update aller Software die mit Chocolatey installiert wurde
-Invoke-Expression -Command "choco upgrade all -y --acceptlicense"
+Invoke-Expression -Command "choco upgrade all -y --acceptlicense --ignore-checksums"
 
 # Holt und installiert alle zur Verfügung gestellten Windows Updates
 Install-Module pswindowsupdate -Force -Confirm:$false -ErrorAction SilentlyContinue
@@ -59,8 +59,8 @@ Get-WUInstall -AcceptAll -Install -IgnoreReboot -ErrorAction SilentlyContinue
 # Aktualisiert die Hilfe Dateien von PowerSHELL
 Update-Help -Force -ErrorAction SilentlyContinue
 
-# Aktualisiert alle PowerSHELL Module
-Get-Module -All | Update-Module -ErrorAction SilentlyContinue
+# Aktualisiert alle installierten PowerSHELL Module
+Get-InstalledModule | Update-Module -ErrorAction SilentlyContinue
 
 # Löscht alle neuen Verknüpfungen, die vor dem Update noch nicht auf dem Desktop waren
 (Get-ChildItem "$env:USERPROFILE\Desktop","$env:SystemDrive\Users\Public\Desktop").FullName | ? {$_ -notin $IconSnapshot} | Remove-Item -Force
@@ -149,6 +149,11 @@ foreach ($Regel in $RegelID)
         Add-MpPreference -AttackSurfaceReductionRules_Ids $Regel -AttackSurfaceReductionRules_Actions Enabled            
     }
 
+# Defender Signaturen aktualisieren
+Update-MpSignature
+
+# Fullscan starten
+Start-MpScan -ScanType FullScan
 
 # Papierkorb nach Anzahl Tagen leeren
 if ($AufbewahrungTage -ne "")
